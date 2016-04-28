@@ -1,0 +1,30 @@
+<script id="summary-template" type="text/x-kendo-template">
+  <div class="col-lg-1" data-post-url="#=data.url#" title="#=data.title#">    
+    <object data="#=data.imageUrl#" type="image/jpg">
+      <img src="http://placehold.it/97x97?text=+" />
+    </object>
+    <span class="post-title">#=data.title#</span>    
+  </div>
+</script>
+
+<script id="row-template" type="text/x-kendo-template">
+  <div class="source" id="#=data.uid#">
+    <div class="row">
+      <span>#=data.feedTitle#</span>
+    </div>
+    <div class="row item-row">
+      <div>
+        <div class="pull-left scroll-btn">
+          <span class="glyphicon glyphicon glyphicon-triangle-left"></span>
+        </div>
+        <div class="scroll-container">
+          <div>
+          </div>
+        </div>
+        <div class="pull-right scroll-btn">
+          <span class="glyphicon glyphicon glyphicon-triangle-right"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</script>
