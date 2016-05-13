@@ -1,15 +1,15 @@
 <script id="summary-template" type="text/x-kendo-template">
   <div class="col-lg-1" data-post-url="#=data.url#" title="#=data.title#">    
     <object data="#=data.imageUrl#" type="image/jpg">
-      <img src="http://placehold.it/97x97?text=+" />
+      <img src="http://placehold.it/97/7a7172?text=+" />
     </object>
-    <span class="post-title">#=data.title#</span>    
+    <span class="post-title"><a href="#=data.url#">#=data.title#</a></span>    
   </div>
 </script>
 
 <script id="row-template" type="text/x-kendo-template">
   <div class="source" id="#=data.uid#">
-    <div class="row">
+    <div class="row feed-title">
       <span>#=data.feedTitle#</span>
     </div>
     <div class="row item-row">
@@ -17,7 +17,7 @@
         <div class="pull-left scroll-btn">
           <span class="glyphicon glyphicon glyphicon-triangle-left"></span>
         </div>
-        <div class="scroll-container">
+        <div class="scroll-container feed-background">
           <div>
           </div>
         </div>

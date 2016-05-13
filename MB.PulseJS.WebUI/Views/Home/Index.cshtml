@@ -1,0 +1,204 @@
+﻿<div class="row">  
+  <h1>PulseJS</h1>  
+</div>
+
+<div id="rows">
+  
+</div>
+
+@section scripts {
+  <style>
+    /* colour */
+    body {
+      background-color: #202020;
+    }
+
+    h1 {
+      color: #fff;
+    }
+     
+    .source .feed-title {
+      color: #ffffff;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .source .feed-title,
+    .source .feed-background {
+      background-color: #333;
+    }  
+
+    /* paging button colour */
+    .source .scroll-btn {
+      border-color: #7a7172;
+      background-color: #7a7172;
+    }
+
+    /* paging arrow colour */
+    .source .scroll-btn span {
+      color: #4a3f41;
+    }
+
+    .source .post-title a {
+      background: transparent none repeat scroll 0 0;
+      color: #7a7172;
+    }
+
+    /* layout */
+    .source {
+      margin-top: 10px;
+    }
+
+    .source .feed-title {
+      padding-left: 3px;
+    }
+
+    .source .item-row {
+      height: 152px;
+    }
+
+    .source .item-row > div {
+      display: table;
+      height: 100%;
+      width: 100%
+    }
+
+    .source .item-row > div > div {
+      display: table-cell;
+    }
+
+    .scroll-container {
+      height: 100%;
+      width: 100%;      
+    }
+
+    .source .scroll-container > div {
+      border: 0;
+      border-style: none;
+      border-width: 0;
+    }
+
+    .source .scroll-container .post-title {
+      font-size: 11px;
+    }
+
+    .source .scroll-container .col-lg-1 {
+      max-height: 150px;
+      overflow: hidden;
+      padding-right: 0;
+    }
+
+    .source .scroll-btn {
+      height: 100%;
+      width: 15px;
+      border: 1px;
+      border-style: solid;      
+      cursor: pointer;
+    }
+
+    .source .scroll-btn span {
+      padding-top: 66px;
+    }
+
+    object {
+      object-fit: cover;
+      width: 97px;
+      height: 97px;
+    }
+  </style>
+
+  <script src="~/Assets/Scripts/mb.pulsejs.template-loader.js"></script>
+  <script src="https://raw.githubusercontent.com/ilinsky/jquery-xpath/master/jquery.xpath.js"></script>
+  <script>
+    window.app = (function($, kendo, console, tl) {
+      var
+        feedDataSources = [],
+        rowTemplate,
+        summaryTemplate;
+
+      function getXmlDataSource(url) {
+        return new kendo.data.DataSource({
+          transport: {
+            read: {
+              url: url,
+              dataType: "xml",
+              dataFilter1: function(data) {
+                // Smashing the feed title in to the model because kendo's XPath implementation doesn't allow getting the root or parent
+                // and I don't want to hit the xml twice to get data that should be available on the initial hit
+                var feedTitle = $.xpath(data, "(/rss/channel/title)[1]").text() || "Unknown Source";
+                return data.split("<item>").join("<item><feedTitle>" + feedTitle + "</feedTitle>");
+              }
+            }
+          },
+          schema: {
+            type: "xml",
+            data: "rss/channel/item",
+            model: {
+              fields: {
+                feedTitle: "feedTitle/text()",
+                title: "title/text()",
+                pubDate: "pubDate/text()",
+                story: "description/text()",
+                url: "link/text()",
+                imageUrl: "enclosure/@@url"
+              }
+            }
+          },
+          pageSize: 10
+        });
+      }
+
+      function initDelegates() {
+        $("div.scroll-btn.pull-left").click(function () {
+          var feed = feedDataSources[$(this).closest(".source").attr("id")].ds;
+          feed.page(feed.page() - 1);
+
+        });
+
+        $("div.scroll-btn.pull-right").click(function () {
+          var feed = feedDataSources[$(this).closest(".source").attr("id")].ds;
+          feed.page(feed.page() + 1);          
+        });
+      }
+
+      tl.loadExtTemplate("/Assets/templates/_index.template.html");
+
+      feedDataSources.push({ uid: "0", url: "http://localhost:64149/api/passthrough?url=http://www.radionz.co.nz/rss/national.xml", title: "Radio NZ: National Headlines" });
+      feedDataSources.push({ uid: "1", url: "http://localhost:64149/api/passthrough?url=http://syndication.apn.co.nz/rss/nzhrsscid_000000001.xml", title: "NZ Herald: National Headlines" });
+      feedDataSources.push({ uid: "2", url: "http://localhost:64149/api/passthrough?url=http://www.stuff.co.nz/rss/", title: "Stuff: National Headlines" });
+      feedDataSources.push({ uid: "3", url: "http://localhost:64149/api/passthrough?url=http://www.stuff.co.nz/rss/manawatu-standard/", title: "Stuff: Manawatu Headlines" });
+
+      //Subscribe to event triggered when templates loaded
+      //(Don't load Kendo UI before templates are available)
+      $(document).bind("FEED_MANAGER_TEMPLATE_LOADED", function(e, data) {
+        console.log('Templates loaded');
+
+        //Compile and cache templates
+        rowTemplate = kendo.template($("#row-template").html(), { useWithBlock: false });
+        summaryTemplate = kendo.template($("#summary-template").html(), { useWithBlock: false });
+
+
+        feedDataSources.forEach(function(src) {
+          var lv, html = kendo.render(rowTemplate, [{ feedTitle: src.title, uid: src.uid }]);
+          $("#rows").append(html);
+
+          lv = $("#" + src.uid + " .scroll-container > div").kendoListView({
+            dataSource: getXmlDataSource(src.url),
+            template: summaryTemplate
+          }).data("kendoListView");
+
+          src.lv = lv;
+          src.ds = lv.dataSource;
+        });
+
+        //Load Feed Items
+        //that.refreshFeedList();
+        //_private.initKendoUI();
+        initDelegates();
+
+        //Trigger event indicating init is complete
+        $(document).trigger("FEED_READER_APP_READY");
+      });
+
+    }(jQuery, kendo, console, templateLoader));
+  </script>
+}
