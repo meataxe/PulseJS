@@ -1,0 +1,124 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>PulseJS Mobile</title>
+  <meta charset="utf-8"/>
+
+  <!-- 
+    CSS include order matters, don't change it!
+    Order is: bootstrap > kendo > kendoOverides > bootstrapOverrides > whatsername > view CSS
+   -->
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+  <link href="http://kendo.cdn.telerik.com/2014.2.716/styles/kendo.mobile.common.css" rel="stylesheet" />
+  <link href="http://kendo.cdn.telerik.com/2014.2.716/styles/kendo.mobile.flat.css" rel="stylesheet" />
+
+  <script>
+    (function(i, s, o, g, r, a, m) {i['GoogleAnalyticsObject'] = r;i[r] = i[r] || function() {(i[r].q = i[r].q || []).push(arguments);}, i[r].l = 1 * new Date();a = s.createElement(o),m = s.getElementsByTagName(o)[0];a.async = 1;a.src = g;m.parentNode.insertBefore(a, m);})(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
+    ga('create', 'UA-77259754-2', 'auto');
+    ga('send', 'pageview');
+  </script>
+</head>
+<body>
+  <!--
+    Below are templates, views, and layouts (included using gulp plugin during dev)
+    Order is: templates > views > layouts
+   -->
+  <!-- templates -->
+  <script id="feedsListItemTemplate" type="text/x-kendo-template">
+    <li>
+      <img src="#=icon#" />
+    </li>
+  
+  </script>
+
+  <!-- views -->
+  <div id="feedsListView"
+       data-role="view"
+       data-layout="default"
+       data-model="pjs.feedsList.viewModel"
+       data-bind="events:{init:init}">
+
+    <ul class="list-group" data-style="inset" data-bind="source: modelData" data-template="feedsListItemTemplate"></ul>
+  </div>
+
+  <!-- layouts -->
+
+  <!-- 
+    JS include order matters, don't change it!
+    Order is: namespace > jQuery > BOWER STUFF > kendo > utilities > models > viewModels > run app
+    -->
+  <!-- APP Namespace -->
+  <script> this.pulsejs = this.pjs = {}; //long and shortcut namespace </script>
+
+  <!-- build:js /thirdparty/thirdparty.js : Must run before utilities, models, and viewModels-->
+  <script src="https://code.jquery.com/jquery-2.2.3.min.js" integrity="sha256-a23g1Nt4dtEYOj7bR+vTu7+T8VP13humZFBJNIYoEJo=" crossorigin="anonymous"></script>
+  <!-- <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script> -->
+  <script src="http://kendo.cdn.telerik.com/2014.2.716/js/jquery.min.js"></script>
+  <script src="http://kendo.cdn.telerik.com/2014.2.716/js/kendo.ui.core.min.js"></script>
+
+
+  <!-- build:js pulsejs.js -->
+
+  <!-- utilities : Must run before models & viewModels-->
+
+  <!-- models : Must run before viewModels-->
+  <script id="feedsModel">
+    (function (pjs, kendo) {
+      'use strict';
+      var feedDataSources = [];
+      feedDataSources.push({ uid: "0", icon: "http://radionz.co.nz/favicon.ico", url: "http://pulsejs.apphb.com/api/passthrough?url=http://www.radionz.co.nz/rss/national.xml", title: "Radio NZ" });
+      feedDataSources.push({ uid: "1", icon: "http://nzherald.co.nz/favicon.ico", url: "http://pulsejs.apphb.com/api/passthrough?url=http://rss.nzherald.co.nz/rss/xml/nzhrsscid_000000001.xml", title: "Herald" });
+      feedDataSources.push({ uid: "2", icon: "http://stuff.co.nz/favicon.ico", url: "http://pulsejs.apphb.com/api/passthrough?url=http://www.stuff.co.nz/rss/", title: "Stuff National" });
+      feedDataSources.push({ uid: "3", icon: "http://stuff.co.nz/favicon.ico", url: "http://pulsejs.apphb.com/api/passthrough?url=http://www.stuff.co.nz/rss/manawatu-standard/", title: "Stuff Manawatu" });
+
+      pjs.feedsModel = new kendo.data.DataSource({
+        //offlineStorage: 'feedsModel',
+        data: feedDataSources,
+        schema: {
+          model: {
+            id: "uid"
+          }
+        }
+      });
+
+      //pjs.groupModel.online(false);
+      pjs.feedsModel.read();
+
+    })(pjs, kendo);
+  </script>
+
+  <!-- viewModels  -->
+  <script id="feedsViewModel">
+    (function (pjs, kendo) {
+      'use strict';
+
+      //below you place anything private you don't want exposed in the viewModel
+      //below we create the viewModel
+      pjs.feedsList = {
+        //create viewModel namespace in global i.e. namespace.[viewModel Name], to expose to global
+        viewModel: kendo.observable({
+          //the actual model
+          modelData: pjs.feedsModel,
+          //other properties or functions you want to observe and expose to html
+          init: function(e) {
+          }
+        })
+      };
+    })(pjs, kendo);
+  </script>
+
+
+  <!-- run application  -->
+  <script>
+    pjs.app = new kendo.mobile.Application(document.body, { //document.body is default, but I'm being explicit
+      skin: 'flat',
+      initial: 'feedsListView', //this is the initial view to show
+      init: function () {
+        //fix mouse events in iOS don't do it for android, causes more issues than it fixes
+        kendo.UserEvents.defaultThreshold(kendo.support.mobileOS.device === 'android' ? 0 : 20);
+      }
+    });
+  </script>
+</body>
+</html>

@@ -173,6 +173,7 @@
     <Content Include="Assets\fonts\glyphicons-halflings-regular.ttf" />
     <Content Include="Assets\fonts\glyphicons-halflings-regular.eot" />
     <Content Include="packages.config" />
+    <Content Include="Index.html" />
     <None Include="Project_Readme.html" />
     <Content Include="Assets\Scripts\jquery-1.10.2.min.map" />
   </ItemGroup>

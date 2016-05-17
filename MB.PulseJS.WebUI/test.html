@@ -1,0 +1,191 @@
+﻿<!DOCTYPE html>
+<html class="k-ff k-ff46 km-root km-phone">
+<head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>PulseJS Mobile</title>
+  <meta charset="utf-8"/>
+
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+  <link href="http://kendo.cdn.telerik.com/2016.1.406/styles/kendo.common.min.css" rel="stylesheet" />
+  <link href="http://kendo.cdn.telerik.com/2016.1.406/styles/kendo.flat.min.css" rel="stylesheet" />
+  <link href="http://kendo.cdn.telerik.com/2016.1.406/styles/kendo.mobile.flat.min.css" rel="stylesheet" />
+  
+
+</head>
+<body>  
+  <!-- templates -->
+  <script id="feedsTemplate" type="text/x-kendo-template">      
+    <li>      
+      <div class="row">
+        <div class="col-xs-1">
+          <img src="#=icon#" style="width: 16px;">
+        </div>
+        <div class="col-xs-11">
+          <strong>#=title#</strong>
+        </div>
+      </div>
+    </li>
+  </script>  
+  
+  <script type="text/x-kendo-template" id="ordersTemplate">
+      <tr>
+          <td>#: Discount #</td>
+          <td>#: Quantity #</td>
+          <td>#: UnitPrice #</dt>
+      </tr>
+  </script>    
+        
+  <!-- views -->  
+  <div data-role="splitview" id="feedsListView">
+    <div data-role="pane" data-layout="side-default" data-transition="slide">
+        <div data-role="view" data-title="Feeds" id="side-root" data-use-native-scrolling="true">
+            <ul data-role="listview" data-style="inset" data-source="splitViewFeeds" data-template="feedsTemplate">
+            </ul>
+        </div>
+
+        <div data-role="layout" data-id="side-default" data-show="">
+            <div data-role="header">
+                <div data-role="navbar">
+                    <span data-role="view-title"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div data-role="pane" data-layout="main-default" id="main-pane">
+        <div data-role="view" data-title="Orders" data-use-native-scrolling="true">
+            No product selected
+        </div>
+
+        <div data-role="view" data-title="Orders" id="orders" data-show="displayOrder" data-use-native-scrolling="true">
+            <table class="products">
+                <thead>
+                 <tr>
+                   <th>Discount</th>
+                   <th>Quantity</th>
+                   <th>Unit Price</th>
+                 </tr>
+                </thead>
+                <tbody id="product-details">
+                 
+                </tbody>
+            </table>
+        </div>
+
+        <div data-role="layout" data-id="main-default">
+            <div data-role="header">
+                <div data-role="navbar">
+                    <span data-role="view-title"></span>
+                    <a data-align="right" data-role="button" class="nav-button" data-icon="home" href="#/" data-target="_top"></a>                    
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+  <!-- run application  -->
+  <script> this.pulsejs = this.pjs = {}; //long and shortcut namespace </script>
+  
+  <script src="https://code.jquery.com/jquery-2.2.3.min.js" integrity="sha256-a23g1Nt4dtEYOj7bR+vTu7+T8VP13humZFBJNIYoEJo=" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+  <script src="http://kendo.cdn.telerik.com/2014.2.716/js/jquery.min.js"></script>
+  <script src="http://kendo.cdn.telerik.com/2014.2.716/js/kendo.ui.core.min.js"></script>  
+  
+  <!-- models : Must run before viewModels-->
+
+
+  <!-- viewModels  -->
+  <script>
+    var categoryID = null;
+    
+    var feedDataSources = [];
+    feedDataSources.push({ uid: "0", icon: "http://radionz.co.nz/favicon.ico", url: "http://pulsejs.apphb.com/api/passthrough?url=http://www.radionz.co.nz/rss/national.xml", title: "Radio NZ" });
+    feedDataSources.push({ uid: "1", icon: "http://nzherald.co.nz/favicon.ico", url: "http://pulsejs.apphb.com/api/passthrough?url=http://rss.nzherald.co.nz/rss/xml/nzhrsscid_000000001.xml", title: "Herald" });
+    feedDataSources.push({ uid: "2", icon: "http://stuff.co.nz/favicon.ico", url: "http://pulsejs.apphb.com/api/passthrough?url=http://www.stuff.co.nz/rss/", title: "Stuff National" });
+    feedDataSources.push({ uid: "3", icon: "http://stuff.co.nz/favicon.ico", url: "http://pulsejs.apphb.com/api/passthrough?url=http://www.stuff.co.nz/rss/manawatu-standard/", title: "Stuff Manawatu" });
+    
+
+    var splitViewFeeds = new kendo.data.DataSource({
+        data: feedDataSources,
+        schema: {
+          model: {
+            id: "uid"
+          }
+        }
+    });
+
+    /*
+    var splitViewProducts = new kendo.data.DataSource({
+        type: "odata",
+        serverFiltering: true,
+
+        transport: {
+            read: {
+                url: "http://demos.telerik.com/kendo-ui/service/Northwind.svc/Products"
+            }
+        }
+    });
+*/
+
+    var splitViewOrderDetails = new kendo.data.DataSource({
+        type: "odata",
+        serverFiltering: true,
+        transport: {
+            read: {
+                url: "http://demos.telerik.com/kendo-ui/service/Northwind.svc/Order_Details?$expand=Order"
+            }
+        },
+
+        change: function() {
+            var template = kendo.template($("#ordersTemplate").text());
+            $("#product-details").html(kendo.render(template, this.data()));
+        }
+    });
+
+    function displayOrder(e) {
+        splitViewOrderDetails.filter({
+            field: "ProductID",
+            operator: "eq",
+            value: parseInt(e.view.params.ProductID)
+        });
+
+        splitViewOrderDetails.read();
+    }
+
+    /*
+    function filterProducts(e) {
+        splitViewProducts.filter({
+            field: "CategoryID",
+            operator: "eq",
+            value: parseInt(e.view.params.CategoryID)
+        });
+
+        splitViewProducts.read();
+    }
+*/
+/*
+    function toggleBackButton(e) {
+        if (e.view.id === "#side-root") {
+            e.view.element.find("[data-role=backbutton]").css("visibility", "hidden");
+        } else {
+            e.view.element.find("[data-role=backbutton]").css("visibility", "visible");
+        }
+    }
+*/    
+</script>
+  
+
+  
+  <script>
+    pjs.app = new kendo.mobile.Application(document.body, { //document.body is default, but I'm being explicit
+      skin: 'flat',
+      initial: 'feedsListView', //this is the initial view to show
+      init: function () {
+        //fix mouse events in iOS don't do it for android, causes more issues than it fixes
+        kendo.UserEvents.defaultThreshold(kendo.support.mobileOS.device === 'android' ? 0 : 20);
+      }
+    });
+  </script>
+</body>
+</html>
